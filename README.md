@@ -1,4 +1,4 @@
-EC-6809 / HD63C09 PARALLEL TO SPI INTERFACE
+EC-6809 PARALLEL TO SPI INTERFACE
 ================================================================
 PH. ROEHR 10/2026
 
