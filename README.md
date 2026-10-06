@@ -102,6 +102,8 @@ C = 0 on success. C = 1 if BUSY never clears.
 
 Be careful not to select more that one CS at a time !
 
+
+
 THIS DESIGN (HARDWARE AND SOFTWARE) IS PROVIDED 'AS IS' UNDER GNU GPL v3 LICENSE.
 
 IF YOU USE IT SEND ME A BEAUTIFUL POSTCARD OF YOUR COUNTRY !
