@@ -100,17 +100,4 @@ C = 0 on success. C = 1 if BUSY never clears.
   
   SPI_BLK    X, B          exchange B bytes in place (B = 0 means 256)
 
-
-Raw sequence, CS0 on, speed 01 (460 kHz at E = 1.8432 MHz):
-
-SPI_DAT         EQU     $EEE0
-SPI_CTL         EQU     $EEE1
-                LDA     #$0C
-                STA     SPI_CTL
-                LDA     #$A5
-                STA     SPI_DAT
-WAIT            LDA     SPI_CTL
-                BMI     WAIT
-                LDA     SPI_DAT
-
 Be careful not to select more that one CS at a time !
