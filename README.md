@@ -64,9 +64,12 @@ clears, the interrupt turns off.
 REGISTERS
 ---------
   BASE+0  W  DATA   load U3 and start eight SCK
+  
   BASE+0  R  DATA   last byte received, from U9
+  
   BASE+1  W  CTRL   D1-D0 CS number, D2 1 = that CS on,
                     D4-D3 speed, D5 interrupt enable
+                    
   BASE+1  R  STAT   D7 = BUSY. D6-D0 are not driven.
 
   SPEED at E = 2 MHz (scales with E):
