@@ -1,6 +1,6 @@
 EC-6809 PARALLEL TO SPI INTERFACE
 ================================================================
-PH. ROEHR 10/2026
+Soultz Haut-Rhin - 10/2026
 
 Schematic: PAR_SPI_Test.pdf (sheet SD_CARD).
 Equations: SPIDEC.PLD in U7, SPISEQ.PLD in U8.
@@ -102,7 +102,7 @@ C = 0 on success. C = 1 if BUSY never clears.
 
 Be careful not to select more that one CS at a time !
 
-
+Philippe
 
 THIS DESIGN (HARDWARE AND SOFTWARE) IS PROVIDED 'AS IS' UNDER GNU GPL v3 LICENSE.
 
