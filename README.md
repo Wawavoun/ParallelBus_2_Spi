@@ -82,22 +82,29 @@ Reading STAT does not.
 
 SOFTWARE
 --------
-spi_PAR.asm drives the board. C = 0 on success. C = 1 if BUSY
-never clears.
+spi_PAR.asm drives the board.
+
+C = 0 on success. C = 1 if BUSY never clears.
 
   SPI_INIT                 CS off, 125 kHz, interrupt off
+  
   SPI_SEL    B = 0-3       assert that CS
+  
   SPI_IDLE                 all CS high
+  
   SPI_SPD    A = 0-3       1 MHz, 500 kHz, 250 kHz, 125 kHz
+  
   SPI_IRQ    A = 0 / else  interrupt off / on
+  
   SPI_BYTE   A = TX        A = RX
+  
   SPI_BLK    X, B          exchange B bytes in place (B = 0 means 256)
+
 
 Raw sequence, CS0 on, speed 01 (460 kHz at E = 1.8432 MHz):
 
 SPI_DAT         EQU     $EEE0
 SPI_CTL         EQU     $EEE1
-
                 LDA     #$0C
                 STA     SPI_CTL
                 LDA     #$A5
