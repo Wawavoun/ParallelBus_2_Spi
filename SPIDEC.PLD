@@ -1,0 +1,129 @@
+Name     SPIDEC ;
+PartNo   U1 ;
+Date     10/2026 ;
+Revision 01 ;
+Designer PH. ROEHR ;
+Company  EC-6809 ;
+Assembly SPI_PAR_LS166 ;
+Location U1 ;
+Device   g22v10 ;
+
+/******************************************************************************/
+/* EC-6809 / HD63C09 PARALLEL TO SPI INTERFACE                                */
+/* U1 - ADDRESS DECODE, CS REGISTER, SPEED REGISTER, CLOCK / 2                */
+/* GAL22V10 / ATF22V10C, 10 NS OR FASTER                                      */
+/*                                                                            */
+/* ALL PINS ARE DECLARED ACTIVE HIGH: EVERY EQUATION GIVES THE PIN LEVEL.     */
+/* NAMES ENDING IN N ARE ACTIVE LOW SIGNALS.                                  */
+/*                                                                            */
+/* REGISTERS (SELN BLOCK, A0 DECODED)                                         */
+/*   BASE+0 W  DATA  LOAD TX 74LS166 (U3), START 8 SCK (U2)                   */
+/*   BASE+0 R  DATA  RX 74LS299 (U4)                                          */
+/*   BASE+1 W  CTRL  D1-D0 CS NUMBER                                          */
+/*                   D2    1 = CS ON                                          */
+/*                   D4-D3 SPEED 00 1 MHZ, 01 500 KHZ, 10 250 KHZ, 11 125 KHZ */
+/*                   D5    IE (IN U2)                                         */
+/*   BASE+1 R  STAT  D7 = BUSY (DRIVEN BY U2)                                 */
+/*                                                                            */
+/* REGISTERS IN THIS GAL CLOCK ON QN RISING = Q FALLING (MID E HIGH).         */
+/* RESET IS SYNCHRONOUS (E/Q RUN DURING RSTN): ALL CS HIGH, SPEED = 11.       */
+/*                                                                            */
+/* I/O MAP                                                                    */
+/* PIN NAME   DIR   CONNECTION         FUNCTION                               */
+/*  1  -      IN    U1.23 QN           CLOCK, NOT DECLARED (SEE BELOW)        */
+/*  2  Q      IN    J1.12 CPU Q                                               */
+/*  3  E      IN    J1.11 CPU E                                               */
+/*  4  RW     IN    J1.10 RW                                                  */
+/*  5  A0     IN    J1.9  CPU A0       0 = DATA, 1 = CTRL/STAT                */
+/*  6  SELN   IN    J1.14 SELN      BOARD I/O DECODER, ACTIVE LOW             */
+/*  7  RSTN   IN    J1.13 RSTN       ACTIVE LOW                               */
+/*  8  D0     IN    J1.1  D0           CTRL CS NUMBER BIT 0                   */
+/*  9  D1     IN    J1.2  D1           CTRL CS NUMBER BIT 1                   */
+/* 10  D2     IN    J1.3  D2           CTRL CS ENABLE                         */
+/* 11  D3     IN    J1.4  D3           CTRL SPEED BIT 0                       */
+/* 12  GND                                                                    */
+/* 13  D4     IN    J1.5  D4           CTRL SPEED BIT 1                       */
+/* 14  T      OUT   U2.13 T            REG, FREE-RUNNING CLOCK / 2            */
+/* 15  SHLDN  OUT   U3.15 SH/LD, U2.2  TX 166 LOAD (LOW) + START STROBE       */
+/* 16  SPD0   OUT   U2.7  SPD0         REG, SPEED BIT 0                       */
+/* 17  CS3N   OUT   J2.9  CS3N         REG, ACTIVE LOW                        */
+/* 18  CS2N   OUT   J2.8  CS2N         REG, ACTIVE LOW                        */
+/* 19  CS1N   OUT   J2.7  CS1N         REG, ACTIVE LOW                        */
+/* 20  CS0N   OUT   J2.6  CS0N         REG, ACTIVE LOW                        */
+/* 21  RDRXN  OUT   U4.2  OE1N         RX 74LS299 OUTPUT ENABLE               */
+/* 22  SPD1   OUT   U2.9  SPD1         REG, SPEED BIT 1                       */
+/* 23  QN     OUT   U1.1, U2.1         GAL CLOCK = NOT Q                      */
+/* 24  VCC          VCC                                                       */
+/******************************************************************************/
+
+/* INPUTS */
+
+/* PIN 1 = CLOCK NOT INPUT, WIRED TO QN (PIN 23).
+THE REGISTERS USE PIN 1 AS CLOCK. */
+
+PIN 2  = Q ;
+PIN 3  = E ;
+PIN 4  = RW ;
+PIN 5  = A0 ;
+PIN 6  = SELN ;
+PIN 7  = RSTN ;
+PIN 8  = D0 ;
+PIN 9  = D1 ;
+PIN 10 = D2 ;
+PIN 11 = D3 ;
+PIN 13 = D4 ;
+
+/* OUTPUTS */
+PIN 14 = T ;
+PIN 15 = SHLDN ;
+PIN 16 = SPD0 ;
+PIN 17 = CS3N ;
+PIN 18 = CS2N ;
+PIN 19 = CS1N ;
+PIN 20 = CS0N ;
+PIN 21 = RDRXN ;
+PIN 22 = SPD1 ;
+PIN 23 = QN ;
+
+/* DECODE */
+WRDAT = !SELN & !A0 & !RW ;
+RDDAT = !SELN & !A0 &  RW ;
+WRCTL = !SELN &  A0 & !RW ;
+
+/* GAL CLOCK, WIRED BACK TO PIN 1 OF U1 AND U2                              */
+QN = !Q ;
+
+/* 74LS166 SH/LD: LOW DURING E HIGH OF A WRITE TO DATA (LOAD).
+   HIGH OTHERWISE (SHIFT). WIRED TO U2 AS THE START STROBE (ACTIVE LOW). */
+SHLDN = !(WRDAT & E) ;
+
+/* RX 74LS299 OUTPUT ENABLE */
+RDRXN = !(RDDAT & E) ;
+
+/* FREE-RUNNING DIVIDE BY 2, USED BY U2 FOR THE 125 KHZ SPEED               */
+T.d = RSTN & !T ;
+
+/* CONTROL REGISTER */
+CS0N.d = !RSTN # (WRCTL & !(D2 & !D1 & !D0)) # (!WRCTL & CS0N) ;
+CS1N.d = !RSTN # (WRCTL & !(D2 & !D1 &  D0)) # (!WRCTL & CS1N) ;
+CS2N.d = !RSTN # (WRCTL & !(D2 &  D1 & !D0)) # (!WRCTL & CS2N) ;
+CS3N.d = !RSTN # (WRCTL & !(D2 &  D1 &  D0)) # (!WRCTL & CS3N) ;
+SPD0.d = !RSTN # (WRCTL & D3) # (!WRCTL & SPD0) ;
+SPD1.d = !RSTN # (WRCTL & D4) # (!WRCTL & SPD1) ;
+
+/* GLOBAL ASYNC RESET AND SYNC PRESET (ONE TERM EACH, SHARED BY ALL
+   REGISTERS OF THE 22V10). NOT USED: RESET IS SYNCHRONOUS VIA RSTN. */
+T.ar = 'b'0 ;
+T.sp = 'b'0 ;
+CS0N.ar = 'b'0 ;
+CS0N.sp = 'b'0 ;
+CS1N.ar = 'b'0 ;
+CS1N.sp = 'b'0 ;
+CS2N.ar = 'b'0 ;
+CS2N.sp = 'b'0 ;
+CS3N.ar = 'b'0 ;
+CS3N.sp = 'b'0 ;
+SPD0.ar = 'b'0 ;
+SPD0.sp = 'b'0 ;
+SPD1.ar = 'b'0 ;
+SPD1.sp = 'b'0 ;
