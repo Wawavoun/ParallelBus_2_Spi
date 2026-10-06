@@ -63,17 +63,17 @@ clears, the interrupt turns off.
 
 REGISTERS
 ---------
-  BASE+0  W  DATA   load U3 and start eight SCK
+  BASE+0  Write  DATA   load U3 and start eight SCK
   
-  BASE+0  R  DATA   last byte received, from U9
+  BASE+0  Read  DATA   last byte received, from U9
   
-  BASE+1  W  CTRL   D1-D0 CS number, D2 1 = that CS on,
+  BASE+1  Write  CTRL   D1-D0 CS number, D2 1 = that CS on,
                     D4-D3 speed, D5 interrupt enable
                     
-  BASE+1  R  STAT   D7 = BUSY. D6-D0 are not driven.
+  BASE+1  Read  STAT   D7 = BUSY. D6-D0 are not driven.
 
-  SPEED at E = 2 MHz (scales with E):
-    00  1 MHz     01  500 kHz     10  250 kHz     11  125 kHz
+  SPEED at E = 2 MHz (scales with E): BASE+1 D4-D3
+    0-0  1 MHz  /   0-1  500 kHz  /   1-0  250 kHz   /  1-1  125 kHz
 
 /INT goes low when a byte finishes, and only if D5 was set.
 It is open collector. A read or a write of DATA releases it.
