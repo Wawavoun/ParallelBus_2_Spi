@@ -51,13 +51,13 @@ ends in D7. A read of DATA turns its outputs on (RDRX low while E is
 high) and puts that byte on the bus.
 
 U2 (4050, powered at 3.3 V) drops SCK, MOSI and the four CS lines
-from 5 V to 3.3 V. MISO comes back through Q3 (2N7000): low on the
+from 5 V to 3.3 V. MISO comes back through Q3 (2N7000), low on the
 3.3 V side pulls MISO5 low, high lets R21 pull MISO5 up to 5 V.
 
 U4 (LM3940) makes the 3.3 V rail from +5 V.
 
 /RESET clears U3 and U9. In the two GALs it is synchronous, so E and
-Q must be running: all CS go high, speed goes to 125 kHz, BUSY
+Q must be running, all CS go high, speed goes to 125 kHz, BUSY
 clears, the interrupt turns off.
 
 
