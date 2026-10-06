@@ -72,7 +72,7 @@ REGISTERS
                     
   BASE+1  Read  STAT   D7 = BUSY. D6-D0 are not driven.
 
-  SPEED at E = 2 MHz (scales with E): BASE+1 D4-D3
+  SPEED at E = 2 MHz (scales with E) BASE+1 CTRL D4-D3
     0-0  1 MHz  /   0-1  500 kHz  /   1-0  250 kHz   /  1-1  125 kHz
 
 /INT goes low when a byte finishes, and only if D5 was set.
