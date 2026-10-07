@@ -1,7 +1,7 @@
 Name     SPISEQ ;
 PartNo   U2 ;
 Date     10/2026 ;
-Revision 01 ;
+Revision 02 ;
 Designer PH. ROEHR ;
 Company  EC-6809 ;
 Assembly SPI_PAR_LS166 ;
@@ -10,14 +10,15 @@ Device   g22v10 ;
 
 /****************************************************************************/
 /* EC-6809 / HD63C09 PARALLEL TO SPI INTERFACE                              */
-/* U2 - SPI CLOCK SEQUENCER (SPI MODE 0, MSB FIRST), TX CLOCK, INTERRUPT    */
+/* U2 - SPI CLOCK SEQUENCER (SPI MODE 0, MSB FIRST), 299 CLOCK, INTERRUPT   */
+/* REV 02: NO 74LS166. SRCLK CLOCKS THE SINGLE 74LS299.                     */
 /* GAL22V10 / ATF22V10C                                                     */
 /*                                                                          */
 /* ALL PINS ARE DECLARED ACTIVE HIGH: EVERY EQUATION GIVES THE PIN LEVEL.   */
 /* EXCEPT PIN 23, DECLARED !INTN: INTN = 1 IN THE EQUATIONS = PIN LOW.      */
 /*                                                                          */
 /* CLOCK = QN FROM U1 (Q FALLING, MID E HIGH), 2 MHZ AT E = 2 MHZ.          */
-/* A WRITE TO DATA (SHLDN LOW AT THE CLOCK EDGE) SETS BUSY AND CLEARS THE   */
+/* A WRITE TO DATA (LOAD HIGH AT THE CLOCK EDGE) SETS BUSY AND CLEARS THE   */
 /* PHASE COUNTER P3 P2 P1 SCK. EACH TICK ADVANCES ONE HALF BIT; SCK = P0.   */
 /* BUSY CLEARS ON THE TICK THAT ENDS PHASE 15 (8 SCK PULSES).               */
 /*                                                                          */
@@ -37,7 +38,7 @@ Device   g22v10 ;
 /* I/O MAP                                                                  */
 /* PIN NAME   DIR   CONNECTION         FUNCTION                             */
 /*  1  QN     IN    U1.23 QN           REGISTER CLOCK                       */
-/*  2  SHLDN  IN    U1.15 SHLDN        START, LOW = WRITE DATA (166 SH/LD)  */
+/*  2  LOAD   IN    U1.15 LOAD         START, HIGH = WRITE DATA (299 S1)    */
 /*  3  SELN   IN    J1.14 SELN         STATUS READ / CTRL WRITE DECODE      */
 /*  4  A0     IN    J1.9  CPU A0                                            */
 /*  5  RW     IN    J1.10 RW                                                */
@@ -54,7 +55,7 @@ Device   g22v10 ;
 /* 16  P1     OUT   TP P1              REG, PHASE BIT 1                     */
 /* 17  P2     OUT   TP P2              REG, PHASE BIT 2                     */
 /* 18  P3     OUT   TP P3              REG, PHASE BIT 3                     */
-/* 19  TXCLK  OUT   U3.7  CLK          TX 74LS166 CLOCK (LOAD + SHIFT)      */
+/* 19  SRCLK  OUT   U9.12 CP           299 CLOCK: LOAD EDGE, THEN SCK       */
 /* 20  SCK    OUT   U4.12 CLK,         J2.3    REG, SPI CLOCK = PHASE BIT 0 */
 /* 21  BUSY   I/O   J1.8  D7           REG, 3-STATE, DRIVES D7 ON STAT READ */
 /* 22  IE     OUT   TP IE              REG, INTERRUPT ENABLE                */
@@ -65,7 +66,7 @@ Device   g22v10 ;
 
 /* INPUTS */
 PIN 1  = QN ;
-PIN 2  = SHLDN ;
+PIN 2  = LOAD ;
 PIN 3  = SELN ;
 PIN 4  = A0 ;
 PIN 5  = RW ;
@@ -83,13 +84,13 @@ PIN 15 = PS1 ;
 PIN 16 = P1 ;
 PIN 17 = P2 ;
 PIN 18 = P3 ;
-PIN 19 = TXCLK ;
+PIN 19 = SRCLK ;
 PIN 20 = SCK ;
 PIN 21 = BUSY ;
 PIN 22 = IE ;
 PIN 23 = !INTN ;                 /* ACTIVE LOW, SEE HEADER */
 
-START = !SHLDN ;
+START = LOAD ;
 RUN   = RSTN & !START ;
 
 /* PRESCALER: COUNT ENABLE AND TICK PER SPEED                               */
@@ -109,9 +110,11 @@ P1.d  = RUN & (P1 $ (INC & SCK)) ;
 P2.d  = RUN & (P2 $ (INC & SCK & P1)) ;
 P3.d  = RUN & (P3 $ (INC & SCK & P1 & P2)) ;
 
-/* TX 74LS166 CLOCK: NOT SCK, PULLED LOW FROM E RISE TO Q FALL OF A WRITE
-   TO DATA. RISING EDGE AT Q FALL LOADS (SHLDN = 0), SCK FALLING SHIFTS. */
-TXCLK = !SCK & !(!SHLDN & Q) ;
+/* 74LS299 CLOCK. S0 IS TIED HIGH, S1 IS LOAD.
+   WHILE LOAD IS HIGH, SRCLK FOLLOWS !Q, SO IT RISES AT Q FALL AND THE 299
+   PARALLEL-LOADS. OTHERWISE SRCLK IS SCK: MISO IS SAMPLED ON THE RISING
+   EDGE AND Q7 (MOSI) CHANGES ONE CLOCK-TO-Q LATER. */
+SRCLK = (LOAD & !Q) # (!LOAD & SCK) ;
 
 /* BUSY: SET ON START, CLEAR AFTER PHASE 15. ON D7 FOR A STATUS READ ONLY.  */
 BUSY.d  = RSTN & (START # (BUSY & !(INC & SCK & P1 & P2 & P3))) ;

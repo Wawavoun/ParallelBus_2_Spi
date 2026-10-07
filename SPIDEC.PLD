@@ -1,7 +1,7 @@
 Name     SPIDEC ;
 PartNo   U1 ;
 Date     10/2026 ;
-Revision 01 ;
+Revision 02 ;
 Designer PH. ROEHR ;
 Company  EC-6809 ;
 Assembly SPI_PAR_LS166 ;
@@ -11,13 +11,14 @@ Device   g22v10 ;
 /******************************************************************************/
 /* EC-6809 / HD63C09 PARALLEL TO SPI INTERFACE                                */
 /* U1 - ADDRESS DECODE, CS REGISTER, SPEED REGISTER, CLOCK / 2                */
+/* REV 02: ONE 74LS299 DOES TX AND RX. PIN 15 IS LOAD, ACTIVE HIGH.          */
 /* GAL22V10 / ATF22V10C, 10 NS OR FASTER                                      */
 /*                                                                            */
 /* ALL PINS ARE DECLARED ACTIVE HIGH: EVERY EQUATION GIVES THE PIN LEVEL.     */
 /* NAMES ENDING IN N ARE ACTIVE LOW SIGNALS.                                  */
 /*                                                                            */
 /* REGISTERS (SELN BLOCK, A0 DECODED)                                         */
-/*   BASE+0 W  DATA  LOAD TX 74LS166 (U3), START 8 SCK (U2)                   */
+/*   BASE+0 W  DATA  LOAD 74LS299 (U9), START 8 SCK (U2)                      */
 /*   BASE+0 R  DATA  RX 74LS299 (U4)                                          */
 /*   BASE+1 W  CTRL  D1-D0 CS NUMBER                                          */
 /*                   D2    1 = CS ON                                          */
@@ -44,7 +45,7 @@ Device   g22v10 ;
 /* 12  GND                                                                    */
 /* 13  D4     IN    J1.5  D4           CTRL SPEED BIT 1                       */
 /* 14  T      OUT   U2.13 T            REG, FREE-RUNNING CLOCK / 2            */
-/* 15  SHLDN  OUT   U3.15 SH/LD, U2.2  TX 166 LOAD (LOW) + START STROBE       */
+/* 15  LOAD   OUT   U9.19 S1, U2.2    HIGH = LOAD THE 299 AND START U2       */
 /* 16  SPD0   OUT   U2.7  SPD0         REG, SPEED BIT 0                       */
 /* 17  CS3N   OUT   J2.9  CS3N         REG, ACTIVE LOW                        */
 /* 18  CS2N   OUT   J2.8  CS2N         REG, ACTIVE LOW                        */
@@ -75,7 +76,7 @@ PIN 13 = D4 ;
 
 /* OUTPUTS */
 PIN 14 = T ;
-PIN 15 = SHLDN ;
+PIN 15 = LOAD ;
 PIN 16 = SPD0 ;
 PIN 17 = CS3N ;
 PIN 18 = CS2N ;
@@ -93,9 +94,10 @@ WRCTL = !SELN &  A0 & !RW ;
 /* GAL CLOCK, WIRED BACK TO PIN 1 OF U1 AND U2                              */
 QN = !Q ;
 
-/* 74LS166 SH/LD: LOW DURING E HIGH OF A WRITE TO DATA (LOAD).
-   HIGH OTHERWISE (SHIFT). WIRED TO U2 AS THE START STROBE (ACTIVE LOW). */
-SHLDN = !(WRDAT & E) ;
+/* 74LS299 S1, AND THE START STROBE INTO U2. HIGH FOR THE WHOLE E HIGH OF A
+   WRITE TO DATA: S0 IS TIED HIGH, SO S1 HIGH SELECTS PARALLEL LOAD.
+   LOW THE REST OF THE TIME: S1 LOW SELECTS SHIFT RIGHT. */
+LOAD = WRDAT & E ;
 
 /* RX 74LS299 OUTPUT ENABLE */
 RDRXN = !(RDDAT & E) ;
